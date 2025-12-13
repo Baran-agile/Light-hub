@@ -77,6 +77,8 @@ let environmentData: Environment = {
 // Simulate API latency
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// --- Data access functions for DIRECT use in Server Components ---
+
 export async function getLights(): Promise<Light[]> {
   await delay(50);
   return lights;
@@ -92,12 +94,22 @@ export async function getScenes(): Promise<Scene[]> {
   return scenes;
 }
 
-export async function toggleLightStatus(lightId: string): Promise<void> {
+export async function getEnvironmentData(): Promise<Environment> {
+    await delay(50);
+    return environmentData;
+}
+
+
+// --- Data mutation functions for use in API Routes and Server Actions ---
+
+export async function toggleLightStatus(lightId: string): Promise<Light | undefined> {
   await delay(50);
   const light = lights.find(l => l.id === lightId);
   if (light) {
     light.status = light.status === 'on' ? 'off' : 'on';
+    return light;
   }
+  return undefined;
 }
 
 
@@ -118,12 +130,6 @@ export async function activateScene(sceneId: string): Promise<void> {
   });
 
   await Promise.all(promises);
-}
-
-
-export async function getEnvironmentData(): Promise<Environment> {
-    await delay(50);
-    return environmentData;
 }
 
 export async function updateEnvironmentData(newData: Partial<Environment>): Promise<Environment> {

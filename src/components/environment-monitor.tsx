@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Thermometer, Droplets, Loader2 } from 'lucide-react';
+import { Thermometer, Droplets } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Environment } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getEnvironmentData } from '@/lib/data';
 
 export function EnvironmentMonitor() {
   const [data, setData] = useState<Environment | null>(null);
@@ -13,8 +12,13 @@ export function EnvironmentMonitor() {
 
   useEffect(() => {
     async function fetchEnvironmentData() {
+      setIsLoading(true);
       try {
-        const environmentData = await getEnvironmentData();
+        const response = await fetch('/api/environment');
+        if (!response.ok) {
+            throw new Error('Failed to fetch environment data');
+        }
+        const environmentData = await response.json();
         setData(environmentData);
       } catch (error) {
         console.error(error);
