@@ -5,6 +5,7 @@ import { Thermometer, Droplets, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Environment } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getEnvironmentData } from '@/lib/data';
 
 export function EnvironmentMonitor() {
   const [data, setData] = useState<Environment | null>(null);
@@ -13,11 +14,7 @@ export function EnvironmentMonitor() {
   useEffect(() => {
     async function fetchEnvironmentData() {
       try {
-        const response = await fetch('/api/environment', { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error('Failed to fetch environment data');
-        }
-        const environmentData = await response.json();
+        const environmentData = await getEnvironmentData();
         setData(environmentData);
       } catch (error) {
         console.error(error);
@@ -29,10 +26,6 @@ export function EnvironmentMonitor() {
 
     fetchEnvironmentData();
     
-    // Optional: Poll for new data every 30 seconds
-    const intervalId = setInterval(fetchEnvironmentData, 30000);
-
-    return () => clearInterval(intervalId);
   }, []);
 
   return (
