@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef } from 'react';
-import { Lightbulb, LightbulbOff } from 'lucide-react';
+import { useRef, useTransition } from 'react';
+import { Lightbulb, LightbulbOff, Loader2 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -11,14 +11,24 @@ import type { Light } from '@/lib/types';
 export function LightCard({ light, action }: { light: Light; action: (formData: FormData) => void; }) {
   const isOn = light.status === 'on';
   const formRef = useRef<HTMLFormElement>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const handleCheckedChange = () => {
+    const formData = new FormData(formRef.current!);
+    startTransition(() => {
+      action(formData);
+    });
+  };
 
   return (
     <Card className={cn('transition-all duration-300', isOn ? 'bg-primary/10 border-primary/40 shadow-lg' : 'bg-card')}>
-      <form action={action} ref={formRef}>
+       <form ref={formRef}>
         <input type="hidden" name="lightId" value={light.id} />
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-base font-semibold">{light.name}</CardTitle>
-          {isOn ? (
+           {isPending ? (
+            <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
+          ) : isOn ? (
             <Lightbulb className="h-6 w-6 text-primary" />
           ) : (
             <LightbulbOff className="h-6 w-6 text-muted-foreground" />
@@ -29,7 +39,8 @@ export function LightCard({ light, action }: { light: Light; action: (formData: 
             <div className={cn("text-lg font-bold uppercase", isOn ? 'text-primary' : 'text-muted-foreground')}>{light.status}</div>
             <Switch
               checked={isOn}
-              onCheckedChange={() => formRef.current?.requestSubmit()}
+              onCheckedChange={handleCheckedChange}
+              disabled={isPending}
               aria-label={`Toggle ${light.name}`}
             />
           </div>

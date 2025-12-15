@@ -2,8 +2,6 @@
 
 import { revalidatePath } from 'next/cache';
 import { activateScene, toggleLightStatus } from '@/lib/data';
-import { suggestOptimizedLightingScene } from '@/ai/flows/suggest-optimized-lighting-scenes';
-import type { SuggestOptimizedLightingSceneInput } from '@/ai/flows/suggest-optimized-lighting-scenes';
 
 export async function toggleLightAction(formData: FormData) {
   const lightId = formData.get('lightId') as string;
@@ -15,6 +13,9 @@ export async function toggleLightAction(formData: FormData) {
     revalidatePath('/');
     return { success: true, message: 'Light toggled.' };
   } catch (error) {
+    console.error('An error occurred in toggleLightAction:', error);
+    // In case of an error, we should still revalidate to sync client with server state
+    revalidatePath('/');
     return { success: false, message: 'Failed to toggle light.' };
   }
 }
@@ -27,14 +28,4 @@ export async function activateSceneAction(sceneId: string) {
   } catch (error) {
     return { success: false, message: 'Failed to activate scene.' };
   }
-}
-
-export async function getAIOptimizationAction(input: SuggestOptimizedLightingSceneInput) {
-    try {
-        const result = await suggestOptimizedLightingScene(input);
-        return { success: true, data: result };
-    } catch (error) {
-        console.error(error);
-        return { success: false, message: 'Failed to get AI suggestion.' };
-    }
 }

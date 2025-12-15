@@ -6,31 +6,32 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Environment } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function EnvironmentMonitor() {
-  const [data, setData] = useState<Environment | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function EnvironmentMonitor({ initialData }: { initialData: Environment | null }) {
+  const [data, setData] = useState<Environment | null>(initialData);
+  const [isLoading, setIsLoading] = useState(!initialData);
 
   useEffect(() => {
-    async function fetchEnvironmentData() {
-      setIsLoading(true);
-      try {
-        const response = await fetch('/api/environment');
-        if (!response.ok) {
-            throw new Error('Failed to fetch environment data');
+    // If data is not provided initially, fetch it once.
+    if (!initialData) {
+      async function fetchEnvironmentData() {
+        setIsLoading(true);
+        try {
+          const response = await fetch('/api/environment');
+          if (!response.ok) {
+              throw new Error('Failed to fetch environment data');
+          }
+          const environmentData = await response.json();
+          setData(environmentData);
+        } catch (error) {
+          console.error(error);
+          setData(null); // Set data to null on error
+        } finally {
+          setIsLoading(false);
         }
-        const environmentData = await response.json();
-        setData(environmentData);
-      } catch (error) {
-        console.error(error);
-        // You could set an error state here and display it to the user
-      } finally {
-        setIsLoading(false);
       }
+      fetchEnvironmentData();
     }
-
-    fetchEnvironmentData();
-    
-  }, []);
+  }, [initialData]);
 
   return (
     <section>

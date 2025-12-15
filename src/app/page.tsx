@@ -1,4 +1,4 @@
-import { getLights, getScenes } from '@/lib/data';
+import { getLights, getScenes, getEnvironmentData } from '@/lib/data';
 import { LightsControl } from '@/components/lights-control';
 import { ScenesControl } from '@/components/scenes-control';
 import { Separator } from '@/components/ui/separator';
@@ -8,6 +8,7 @@ import { EnvironmentMonitor } from '@/components/environment-monitor';
 export default async function Home() {
   const lights = await getLights();
   const scenes = await getScenes();
+  const environmentData = await getEnvironmentData();
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -33,7 +34,7 @@ export default async function Home() {
 
         <Separator />
 
-        <EnvironmentMonitor />
+        <EnvironmentMonitor initialData={environmentData} />
 
         <Separator />
 
@@ -43,7 +44,6 @@ export default async function Home() {
           </h2>
           <ScenesControl scenes={scenes} />
         </section>
-
       </main>
       
       <footer className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">

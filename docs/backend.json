@@ -1,0 +1,32 @@
+{
+  "entities": {
+    "light": {
+      "title": "Light",
+      "description": "Represents a single controllable light in the smart home system.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the light (e.g., 'Living Room Ceiling')."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the light.",
+          "enum": ["on", "off"]
+        }
+      },
+      "required": ["name", "status"]
+    }
+  },
+  "auth": {
+    "providers": ["anonymous"]
+  },
+  "firestore": {
+    "/lights/{lightId}": {
+      "schema": {
+        "$ref": "#/entities/light"
+      },
+      "description": "Stores the state and details of individual lights."
+    }
+  }
+}

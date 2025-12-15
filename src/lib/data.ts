@@ -1,15 +1,15 @@
+import { collection, getDocs, doc, getDoc, updateDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase';
 import type { Light, Scene, Environment } from '@/lib/types';
 
-// In-memory store for lights. In a real app, this would be a database.
-let lights: Light[] = [
-  { id: '1', name: 'Living Room Ceiling', status: 'off' },
-  { id: '2', name: 'Living Room Lamp', status: 'on' },
-  { id: '3', name: 'Bedroom Lamp', status: 'off' },
-  { id: '4', name: 'Kitchen Overhead', status: 'on' },
-  { id: '5', name: 'Office Desk Light', status: 'off' },
-  { id: '6', name: 'Hallway Light', status: 'off' },
-];
+// This function should be used by SERVER COMPONENTS only.
+async function getDb() {
+  const { firestore } = initializeFirebase();
+  return firestore;
+}
 
+// In-memory store for scenes and environment, as they are not stored in Firestore yet.
 let scenes: Scene[] = [
   {
     id: 'reading',
@@ -74,20 +74,68 @@ let environmentData: Environment = {
     humidity: 45,
 };
 
-// Simulate API latency
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// --- Data access functions for DIRECT use in Server Components ---
+// --- Firestore Data Access Functions for Lights ---
 
 export async function getLights(): Promise<Light[]> {
-  await delay(50);
-  return lights;
+  const db = await getDb();
+  const lightsCol = collection(db, 'lights');
+  const lightSnapshot = await getDocs(lightsCol);
+  const lightList = lightSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Light));
+  
+  // If firestore is empty, populate with initial data
+  if (lightList.length === 0) {
+    const initialLights: Light[] = [
+      { id: '1', name: 'Living Room Ceiling', status: 'off' },
+      { id: '2', name: 'Living Room Lamp', status: 'on' },
+      { id: '3', name: 'Bedroom Lamp', status: 'off' },
+      { id: '4', name: 'Kitchen Overhead', status: 'on' },
+      { id: '5', name: 'Office Desk Light', status: 'off' },
+      { id: '6', name: 'Hallway Light', status: 'off' },
+    ];
+    for (const light of initialLights) {
+        await setDoc(doc(db, "lights", light.id), {name: light.name, status: light.status});
+    }
+    return initialLights;
+  }
+  
+  return lightList;
 }
 
 export async function getLight(lightId: string): Promise<Light | undefined> {
-  await delay(50);
-  return lights.find(l => l.id === lightId);
+  const db = await getDb();
+  const lightRef = doc(db, 'lights', lightId);
+  const lightSnap = await getDoc(lightRef);
+  if (lightSnap.exists()) {
+    return { id: lightSnap.id, ...lightSnap.data() } as Light;
+  }
+  return undefined;
 }
+
+
+export async function toggleLightStatus(lightId: string): Promise<Light | undefined> {
+    const db = await getDb();
+    const lightRef = doc(db, 'lights', lightId);
+    const lightSnap = await getDoc(lightRef);
+
+    if (lightSnap.exists()) {
+        const currentStatus = lightSnap.data().status;
+        const newStatus = currentStatus === 'on' ? 'off' : 'on';
+        await updateDoc(lightRef, { status: newStatus });
+        return { id: lightId, ...lightSnap.data(), status: newStatus } as Light;
+    }
+    return undefined;
+}
+
+
+export async function setLightStatus(lightId: string, status: 'on' | 'off'): Promise<void> {
+    const db = await getDb();
+    const lightRef = doc(db, 'lights', lightId);
+    await updateDoc(lightRef, { status });
+}
+
+// --- In-memory data functions for Scenes and Environment ---
 
 export async function getScenes(): Promise<Scene[]> {
   await delay(50);
@@ -97,28 +145,6 @@ export async function getScenes(): Promise<Scene[]> {
 export async function getEnvironmentData(): Promise<Environment> {
     await delay(50);
     return environmentData;
-}
-
-
-// --- Data mutation functions for use in API Routes and Server Actions ---
-
-export async function toggleLightStatus(lightId: string): Promise<Light | undefined> {
-  await delay(50);
-  const light = lights.find(l => l.id === lightId);
-  if (light) {
-    light.status = light.status === 'on' ? 'off' : 'on';
-    return light;
-  }
-  return undefined;
-}
-
-
-export async function setLightStatus(lightId: string, status: 'on' | 'off'): Promise<void> {
-  await delay(50);
-  const light = lights.find(l => l.id === lightId);
-  if (light) {
-    light.status = status;
-  }
 }
 
 export async function activateScene(sceneId: string): Promise<void> {
