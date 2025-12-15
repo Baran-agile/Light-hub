@@ -11,26 +11,31 @@ export function EnvironmentMonitor({ initialData }: { initialData: Environment |
   const [isLoading, setIsLoading] = useState(!initialData);
 
   useEffect(() => {
-    // If data is not provided initially, fetch it once.
-    if (!initialData) {
-      async function fetchEnvironmentData() {
-        setIsLoading(true);
-        try {
-          const response = await fetch('/api/environment');
-          if (!response.ok) {
-              throw new Error('Failed to fetch environment data');
-          }
-          const environmentData = await response.json();
-          setData(environmentData);
-        } catch (error) {
-          console.error(error);
-          setData(null); // Set data to null on error
-        } finally {
-          setIsLoading(false);
+    async function fetchEnvironmentData() {
+      try {
+        const response = await fetch('/api/environment');
+        if (!response.ok) {
+          throw new Error('Failed to fetch environment data');
         }
+        const environmentData = await response.json();
+        setData(environmentData);
+      } catch (error) {
+        console.error(error);
+        // Don't null out data on intermittent fetch errors, keep last known value
       }
-      fetchEnvironmentData();
     }
+
+    // Fetch initially if no data
+    if (!initialData) {
+        setIsLoading(true);
+        fetchEnvironmentData().finally(() => setIsLoading(false));
+    }
+    
+    // Set up an interval to poll for new data every 3 seconds
+    const intervalId = setInterval(fetchEnvironmentData, 3000);
+
+    // Clean up the interval on component unmount
+    return () => clearInterval(intervalId);
   }, [initialData]);
 
   return (
@@ -48,10 +53,10 @@ export function EnvironmentMonitor({ initialData }: { initialData: Environment |
             {isLoading ? (
                 <Skeleton className="h-8 w-24" />
             ) : (
-                <div className="text-2xl font-bold">{data?.temperature}°C</div>
+                <div className="text-2xl font-bold">{data?.temperature.toFixed(1)}°C</div>
             )}
             <p className="text-xs text-muted-foreground">
-              Current room temperature
+              Live room temperature
             </p>
           </CardContent>
         </Card>
@@ -64,10 +69,10 @@ export function EnvironmentMonitor({ initialData }: { initialData: Environment |
              {isLoading ? (
                 <Skeleton className="h-8 w-20" />
             ) : (
-                <div className="text-2xl font-bold">{data?.humidity}%</div>
+                <div className="text-2xl font-bold">{data?.humidity.toFixed(0)}%</div>
             )}
             <p className="text-xs text-muted-foreground">
-              Current room humidity
+              Live room humidity
             </p>
           </CardContent>
         </Card>

@@ -143,7 +143,12 @@ export async function getScenes(): Promise<Scene[]> {
 }
 
 export async function getEnvironmentData(): Promise<Environment> {
-    await delay(50);
+    // Simulate slight fluctuations from a sensor
+    environmentData.temperature += (Math.random() - 0.5) * 0.2;
+    environmentData.humidity += (Math.random() - 0.5) * 1;
+    // Clamp values
+    environmentData.temperature = Math.max(18, Math.min(28, environmentData.temperature));
+    environmentData.humidity = Math.max(30, Math.min(60, environmentData.humidity));
     return environmentData;
 }
 

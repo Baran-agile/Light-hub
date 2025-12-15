@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getEnvironmentData, updateEnvironmentData } from '@/lib/data';
 
+// This endpoint is polled by the frontend to get the latest sensor data.
 export async function GET() {
   try {
     const data = await getEnvironmentData();
@@ -10,6 +11,7 @@ export async function GET() {
   }
 }
 
+// This endpoint is for sensors to send new temperature and humidity data to.
 export async function POST(request: Request) {
   try {
     const body = await request.json();
