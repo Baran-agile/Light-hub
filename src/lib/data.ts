@@ -31,8 +31,8 @@ let scenes: Scene[] = [
     icon: 'Film',
     description: 'Dim, warm lighting for a cinematic experience.',
     lightStates: [
-      { lightId: '1', status: 'off' },
-      { lightId: '2', status: 'on' },
+      { lightId: '1', status: 'on' },
+      { lightId: '2', status: 'off' },
       { lightId: '3', status: 'off' },
       { lightId: '4', status: 'off' },
       { lightId: '5', 'status': 'off' },
@@ -61,7 +61,7 @@ let scenes: Scene[] = [
     lightStates: [
       { lightId: '1', status: 'off' },
       { lightId: '2', status: 'off' },
-      { lightId: '3', status: 'off' },
+      { lightId: '3', status: 'on' },
       { lightId: '4', status: 'on' },
       { lightId: '5', status: 'on' },
       { lightId: '6', status: 'off' },
@@ -87,12 +87,12 @@ export async function getLights(): Promise<Light[]> {
   // If firestore is empty, populate with initial data
   if (lightList.length === 0) {
     const initialLights: Light[] = [
-      { id: '1', name: 'Living Room Ceiling', status: 'off' },
-      { id: '2', name: 'Living Room Lamp', status: 'on' },
-      { id: '3', name: 'Bedroom Lamp', status: 'off' },
-      { id: '4', name: 'Kitchen Overhead', status: 'on' },
-      { id: '5', name: 'Office Desk Light', status: 'off' },
-      { id: '6', name: 'Hallway Light', status: 'off' },
+      { id: '1', name: '(Yellow) Living Room Ceiling', status: 'off' },
+      { id: '2', name: '(Green) Living Room Lamp', status: 'on' },
+      { id: '3', name: '(Red) Bedroom Lamp', status: 'off' },
+      { id: '4', name: '(Blue) Kitchen Overhead', status: 'on' },
+      // { id: '5', name: 'Office Desk Light', status: 'off' },
+      // { id: '6', name: 'Hallway Light', status: 'off' },
     ];
     for (const light of initialLights) {
         await setDoc(doc(db, "lights", light.id), {name: light.name, status: light.status});
